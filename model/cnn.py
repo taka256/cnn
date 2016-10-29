@@ -35,7 +35,7 @@ class CNN(object):
                 self.__accumulate_loss(y, t, n_data, epo)
 
             # update learning rate
-            if (epo + 1) % 5 == 0: epsilon = self.__update_epsilon(epsilon, gamma)
+            if (epo + 1) % 10 == 0: epsilon = self.__update_epsilon(epsilon, gamma)
 
             print 'epoch: {0}, loss: {1}'.format(epo, self.__loss[epo])
 

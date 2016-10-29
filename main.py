@@ -42,7 +42,7 @@ if __name__ == '__main__':
     cnn = CNN(conv1, pool1, conv2, pool2, neural, error)
 
     print 'train...'
-    cnn.train(X_train, T_train, epsilon = 0.01, lam = 0.0, gamma = 0.9, epochs = 50)
+    cnn.train(X_train, T_train, epsilon = 0.01, lam = 0.0, gamma = 0.9, epochs = 100)
 
     print 'predict...'
     Y_test = cnn.predict(X_test)

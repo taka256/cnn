@@ -10,8 +10,7 @@ class Pooling(object):
 
     def forward(self, X):
         k, h, w = X.shape
-        kh, kw = self.kh, self.kw
-        oh, ow = np.vectorize(lambda _x: _x / self.s + 1)([h - kh, w - kw])
+        oh, ow = np.vectorize(lambda _x: _x / self.s + 1)([h - self.kh, w - self.kw])
         val, self.__ind = self.__max(X, k, oh, ow)
         return val
 
@@ -30,14 +29,13 @@ class Pooling(object):
 
 
     def __im2patch(self, X, k, oh, ow):
-        l = self.__patch_tl(oh, ow)
-        return np.array([X[:, j:j+self.kh, i:i+self.kw] for j, i in l]).swapaxes(0, 1).reshape(k, oh * ow, -1)
+        patch = np.zeros((oh * ow, X.shape[0], self.kh, self.kw))
+        for j in range(oh):
+            for i in range(ow):
+                _j, _i = j * self.s, i * self.s
+                patch[j * ow + i, :, :, :] = X[:, _j:_j+self.kh, _i:_i+self.kw]
+        return patch.swapaxes(0, 1).reshape(k, oh * ow, -1)
 
-
-    def __patch_tl(self, oh, ow):
-        _l = np.arange(oh * ow)
-        return np.vstack((_l / ow, _l % ow)).T * self.s
-        
 
     def __backward_delta(self, delta, ind, k, h, w):
         _delta = np.zeros(k * h * w)

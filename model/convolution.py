@@ -34,19 +34,17 @@ class Convolution(object):
         return np.tensordot(self.__patch, self.weight, ((1, 2, 3), (1, 2, 3))).T.reshape(m, oh, ow)# + self.bias.reshape(m, 1, 1)
 
 
-    def __patch_center(self, h, w):
-        _l = np.arange(h * w)
-        return np.vstack((_l / w, _l % w)).T
-        
-
     def __im2patch(self, X, oh, ow):
-        c = self.__patch_center(oh, ow)
-        return np.array([X[:, j:j+self.kh, i:i+self.kw] for j, i in c])
+        patch = np.zeros((oh * ow, X.shape[0], self.kh, self.kw))
+        for j in range(oh):
+            for i in range(ow):
+                patch[j * ow + i, :, :, :] = X[:, j:j+self.kh, i:i+self.kw]
+        return patch
 
 
     def __patch2im(self, patch, h, w, shape):
         im = np.zeros(shape)
-        c = self.__patch_center(h, w)
-        for j, i in c:
-            im[:, j:j+self.kh, i:i+self.kw] += patch[j * w + i]
+        for j in range(h):
+            for i in range(w):
+                im[:, j:j+self.kh, i:i+self.kw] += patch[j * w + i]
         return im
