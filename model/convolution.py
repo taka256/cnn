@@ -6,7 +6,6 @@ class Convolution(object):
         self.kh = kh
         self.kw = kw
         self.weight = np.random.randn(m, k, kh, kw) * 0.1
-        self.bias = np.random.randn(m) * 0.1
         self.activator = act
 
 
@@ -15,30 +14,29 @@ class Convolution(object):
 
 
     def backward(self, delta, shape):
-        k, h, w = delta.shape
-        delta_patch = np.tensordot(delta.reshape(k, h * w), self.weight, (0, 0))
+        s_batch, k, h, w = delta.shape
+        delta_patch = np.tensordot(delta.reshape(s_batch, k, h * w), self.weight, (1, 0))
         return self.__patch2im(delta_patch, h, w, shape)
 
 
     def update_weight(self, delta, epsilon):
-        k, h, w = delta.shape
-        self.weight -= epsilon * np.tensordot(delta.reshape(k, h * w), self.__patch, (1, 0))
-        # self.bias -= epsilon * delta.reshape(k, h * w).sum(axis = 1)
+        s_batch, k, h, w = delta.shape
+        self.weight -= epsilon * self.__grad(delta, s_batch, k, h, w)
 
 
     def __forward(self, X):
-        xh, xw = X.shape[1:3]
+        s_batch, k, xh, xw = X.shape
         m = self.weight.shape[0]
         oh, ow = xh - self.kh / 2 * 2, xw - self.kw / 2 * 2
-        self.__patch = self.__im2patch(X, oh, ow)
-        return np.tensordot(self.__patch, self.weight, ((1, 2, 3), (1, 2, 3))).T.reshape(m, oh, ow)# + self.bias.reshape(m, 1, 1)
+        self.__patch = self.__im2patch(X, s_batch, k, oh, ow)
+        return np.tensordot(self.__patch, self.weight, ((2, 3, 4), (1, 2, 3))).swapaxes(1, 2).reshape(s_batch, m, oh, ow)
 
 
-    def __im2patch(self, X, oh, ow):
-        patch = np.zeros((oh * ow, X.shape[0], self.kh, self.kw))
+    def __im2patch(self, X, s_batch, k, oh, ow):
+        patch = np.zeros((s_batch, oh * ow, k, self.kh, self.kw))
         for j in range(oh):
             for i in range(ow):
-                patch[j * ow + i, :, :, :] = X[:, j:j+self.kh, i:i+self.kw]
+                patch[:, j * ow + i, :, :, :] = X[:, :, j:j+self.kh, i:i+self.kw]
         return patch
 
 
@@ -46,5 +44,9 @@ class Convolution(object):
         im = np.zeros(shape)
         for j in range(h):
             for i in range(w):
-                im[:, j:j+self.kh, i:i+self.kw] += patch[j * w + i]
+                im[:, :, j:j+self.kh, i:i+self.kw] += patch[:, j * w + i]
         return im
+
+
+    def __grad(self, delta, s_batch, k, h, w):
+        return np.tensordot(delta.reshape(s_batch, k, h * w), self.__patch, ((0, 2), (0, 1))) / s_batch

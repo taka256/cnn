@@ -27,18 +27,19 @@ class NN(object):
 
 
     def update_weight(self, output_delta, hidden_delta, z, u, epsilon, lam):
+        s_batch = z.shape[1]
         reg_term = np.hstack((np.zeros((self.n_output, 1)), self.output_weight[:, 1:]))
-        self.output_weight -= epsilon * (self.__grad(z, output_delta) + lam * reg_term)
-        self.hidden_weight -= epsilon * self.__grad(u, hidden_delta)
+        self.output_weight -= epsilon * (self.__grad(z, output_delta, s_batch) + lam * reg_term)
+        self.hidden_weight -= epsilon * self.__grad(u, hidden_delta, s_batch)
 
 
     def __forward(self, x, weight, act):
-        return act.activate(weight.dot(np.hstack((1.0, x))))
+        return act.activate(weight.dot(np.vstack((np.ones((x.shape[1])), x))))
 
 
     def __delta(self, weight, delta, x, act):
         return weight[:, 1:].T.dot(delta) * act.derivate(x)
 
 
-    def __grad(self, x, delta):
-        return delta.reshape(-1, 1) * np.hstack((1.0, x))
+    def __grad(self, x, delta, s_batch):
+        return delta.dot(np.vstack((np.ones((1, x.shape[1])), x)).T) / s_batch

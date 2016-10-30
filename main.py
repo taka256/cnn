@@ -27,7 +27,7 @@ if __name__ == '__main__':
     T = create_label(t, n_data, n_class)
 
     print 'make train/test data'
-    n_train, n_test = 100, 50
+    n_train, n_test = 1000, 50
     i = np.random.permutation(n_data)[:n_train+n_test]
     i_train, i_test = np.hsplit(i, [n_train])
     X_train, X_test = X[i_train, :].reshape(n_train, 1, 28, 28), X[i_test, :].reshape(n_test, 1, 28, 28)
@@ -42,11 +42,11 @@ if __name__ == '__main__':
     cnn = CNN(conv1, pool1, conv2, pool2, neural, error)
 
     print 'train...'
-    cnn.train(X_train, T_train, epsilon = 0.01, lam = 0.0, gamma = 0.9, epochs = 100)
+    cnn.train(X_train, T_train, epsilon = 0.005, lam = 0.0001, gamma = 0.9, s_batch = 1, epochs = 50)
 
-    print 'predict...'
-    Y_test = cnn.predict(X_test)
-    print 'test loss: {0}'.format(cnn.test_loss(Y_test, T_test))
+    # print 'predict...'
+    # Y_test = cnn.predict(X_test)
+    # print 'test loss: {0}'.format(cnn.test_loss(Y_test, T_test))
 
     print 'save figure of loss...'
     cnn.save_lossfig()

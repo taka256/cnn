@@ -12,15 +12,16 @@ class CNN(object):
         self.error = error
 
 
-    def train(self, X, T, epsilon, lam, gamma, epochs):
+    def train(self, X, T, epsilon, lam, gamma, s_batch, epochs):
         n_data = X.shape[0]
         self.__set_loss(epochs)
         for epo in range(epochs):
-            for i in np.random.permutation(n_data):
-                x, t = X[i], T[i]
+            perm = np.random.permutation(n_data)
+            for i in range(0, n_data, s_batch):
+                x, t = X[perm[i:i+s_batch]], T[perm[i:i+s_batch]].T
 
                 # forward
-                cv1, pl1, cv2, pl2, u, z, y = self.__forward(x)
+                cv1, pl1, cv2, pl2, u, z, y = self.__forward(x, s_batch)
 
                 # backward
                 output_delta, hidden_delta, input_delta = self.neural.backward(t, y, z, u, self.error)
@@ -41,16 +42,12 @@ class CNN(object):
 
 
     def predict(self, X):
-        Y = np.array([]).reshape(0, 10)
-        for x in X:
-            y = self.__forward(x)[6]
-            Y = np.vstack((Y, y))
-        return Y
+        return self.__forward(X)[6]
 
 
     def test_loss(self, Y, T):
         n_data = Y.shape[0]
-        return self.error.delta(Y, T) / n_data
+        return self.error.delta(Y, T.T) / n_data
 
 
     def save_lossfig(self, fn = 'loss.png'):
@@ -58,12 +55,12 @@ class CNN(object):
         pyplot.savefig(fn)
 
 
-    def __forward(self, X):
+    def __forward(self, X, s_batch):
         cv1 = self.conv1.forward(X)
         pl1 = self.pool1.forward(cv1)
         cv2 = self.conv2.forward(pl1)
         pl2 = self.pool2.forward(cv2)
-        u = pl2.flatten()
+        u = pl2.reshape(s_batch, -1).T
         z, y = self.neural.forward(u)
         return cv1, pl1, cv2, pl2, u, z, y
 
