@@ -42,12 +42,11 @@ class CNN(object):
 
 
     def predict(self, X):
-        return self.__forward(X)[6]
+        return self.__forward(X, X.shape[0])[6]
 
 
-    def test_loss(self, Y, T):
-        n_data = Y.shape[0]
-        return self.error.delta(Y, T.T) / n_data
+    def accuracy(self, Y, T):
+        return (Y.argmax(axis = 0) == T.argmax(axis = 1)).sum() * 1.0 / Y.shape[1]
 
 
     def save_lossfig(self, fn = 'loss.png'):
