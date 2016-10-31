@@ -33,7 +33,7 @@ class Activator:
 
         def activate(self, x):
             exp = np.exp(x)
-            return exp / exp.sum()
+            return exp / exp.sum(axis = 0)
 
         def derivate(self, x):
             return x * (1.0 - x)

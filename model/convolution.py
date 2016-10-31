@@ -5,7 +5,7 @@ class Convolution(object):
     def __init__(self, m, k, kh, kw, act):
         self.kh = kh
         self.kw = kw
-        self.weight = np.random.randn(m, k, kh, kw) * 0.1
+        self.weight = np.random.normal(0.0, np.sqrt(2.0 / (m * kh * kw)), (m, k, kh, kw))
         self.activator = act
 
 
