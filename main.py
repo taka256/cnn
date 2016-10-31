@@ -10,7 +10,7 @@ from model.error import Error as err
 def read_data(fn):
     ml = np.loadtxt(fn, delimiter = ',')
     X, t = np.hsplit(ml, [-1])
-    return (X / X.max(), t.astype('int'))
+    return X / X.max(), t.astype('int')
 
 def create_label(t, n_data, n_class):
     T = np.zeros((n_data, n_class))
@@ -42,11 +42,12 @@ if __name__ == '__main__':
     cnn = CNN(conv1, pool1, conv2, pool2, neural, error)
 
     print 'train...'
-    cnn.train(X_train, T_train, epsilon = 0.005, lam = 0.0001, gamma = 0.9, s_batch = 1, epochs = 50)
+    cnn.train(X_train, T_train, epsilon = 0.005, lam = 0.0001, gamma = 0.9, s_batch = 5, epochs = 50)
 
-    # print 'predict...'
-    # Y_test = cnn.predict(X_test)
-    # print 'test loss: {0}'.format(cnn.test_loss(Y_test, T_test))
+    print 'predict...'
+    Y_test = cnn.predict(X_test)
+    accuracy = cnn.accuracy(Y_test, T_test)
+    print 'accuracy: {0}'.format(accuracy)
 
     print 'save figure of loss...'
     cnn.save_lossfig()
